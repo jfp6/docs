@@ -1,6 +1,6 @@
 ---
 layout: default
 title: Test document
-nav_order: 1
+nav_order: 10
 ---
 
