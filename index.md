@@ -9,3 +9,5 @@ permalink: /
 # Useful References
 
 [Unit Converter](https://jfp6-unitgui-main-b23dpl.streamlitapp.com/) 
+
+[Jupyter Notebook](https://www.kaggle.com/code/josephfprince/website/edit)
