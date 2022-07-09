@@ -23,4 +23,4 @@ Compile with rustc hello.rs
 Output:
 `Hello, hi for 1.5 !!`
 
-[Jupyter Notebook](https://www.kaggle.com/code/josephfprince/website)
+[Jupyter Notebook](https://www.kaggle.com/code/josephfprince/website/edit)
