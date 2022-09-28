@@ -481,5 +481,5 @@ function calculateEnergyUsage_Month() {
   } else {
     P = A*0.5;
   }
-  document.getElementById("power").value = (P).toFixed();
+  document.getElementById("power").value = P;
 }
