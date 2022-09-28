@@ -469,3 +469,17 @@ jtd.onReady(function(){
 })(window.jtd = window.jtd || {});
 
 {% include js/custom.js %}
+
+function calculateEnergyUsage_Month() {
+  const area = document.getElementById('area');
+  let A = area.value;
+  let P = 0;
+  if (A < 1000) {
+    P  = A;
+  } else if (A < 2000) {
+    P = A*0.75;
+  } else {
+    P = A*0.5;
+  }
+  document.getElementById("power").value = (P).toFixed();
+}
