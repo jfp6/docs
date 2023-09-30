@@ -14,4 +14,5 @@ echo "export OMP_NUM_THREADS=4" >> ~/.bashrc
 echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'"
 ```
 
+[install gfortran7](https://askubuntu.com/questions/949308/how-do-i-install-gfortran-7)
 [Modified from this source.](https://carlomonjaraztec.wordpress.com/)
