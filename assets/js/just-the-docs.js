@@ -483,3 +483,4 @@ function calculateEnergyUsage_Month() {
   }
   document.getElementById("power").value = P;
 }
+
