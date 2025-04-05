@@ -1,0 +1,19 @@
+<h1>Pipe Flow Head Loss Calculator</h1>
+
+<label>Pipe Length (m):</label>
+<input type="number" id="length" step="any">
+
+<!-- ... all input fields and fitting list ... -->
+
+<h3>Minor Losses</h3>
+<div id="fittings"></div>
+<button onclick="addFitting()">Add Fitting</button>
+
+<br><br>
+<button onclick="calculate()">Calculate Total Head Loss</button>
+
+<div id="result"></div>
+<canvas id="lossChart" width="400" height="200"></canvas>
+
+<!-- Link to external script -->
+<script src="/assets/js/head_loss_calculator.js"></script>
