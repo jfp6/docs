@@ -11,3 +11,5 @@ nav_order: 13
 <button id="reset-exercises">Reset</button>
 
 {% include exercise-script.html %}
+
+{% include exercise-script2.html %}
