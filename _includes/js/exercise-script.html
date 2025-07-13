@@ -1,0 +1,17 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll('#exercise-list input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+      const id = checkbox.id;
+      const saved = localStorage.getItem(id);
+      if (saved !== null) {
+        checkbox.checked = JSON.parse(saved);
+      }
+
+      checkbox.addEventListener("change", function () {
+        localStorage.setItem(id, checkbox.checked);
+      });
+    });
+  });
+</script>
