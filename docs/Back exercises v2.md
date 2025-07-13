@@ -6,7 +6,7 @@ nav_order: 20
 
 <h2>Day 1</h2>
 <div id="exercise-list-day1"></div>
-<button id="reset-exercises-day1">Reset Day 1</button>
+<button id="reset-exercises-day1">Submit Day 1</button>
 <button id="clear-history-day1">Clear History Day 1</button>
 <canvas id="chart-day1" width="400" height="200"></canvas>
 <div id="history-day1"></div>
@@ -15,7 +15,7 @@ nav_order: 20
 
 <h2>Day 2</h2>
 <div id="exercise-list-day2"></div>
-<button id="reset-exercises-day2">Reset Day 2</button>
+<button id="reset-exercises-day2">Submit Day 2</button>
 <button id="clear-history-day2">Clear History Day 2</button>
 <canvas id="chart-day2" width="400" height="200"></canvas>
 <div id="history-day2"></div>
