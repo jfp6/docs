@@ -3,7 +3,7 @@ layout: default
 title: Back exercises
 nav_order: 13
 ---
-
+{% raw %}
 <div id="exercise-list">
   <label>
     <input type="checkbox" id="exercise-back-stretch">
@@ -21,25 +21,22 @@ nav_order: 13
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const exerciseIds = [
-      "exercise-back-stretch",
-      "exercise-back-strengthen",
-      "exercise-deadlift"
-    ];
-
-    exerciseIds.forEach(id => {
-      const checkbox = document.getElementById(id);
-
-      // Load saved state
+    const checkboxes = document.querySelectorAll('#exercise-list input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+      const id = checkbox.id;
+      // Load from localStorage
       const saved = localStorage.getItem(id);
-      if (saved === "true") {
-        checkbox.checked = true;
+      if (saved !== null) {
+        checkbox.checked = JSON.parse(saved); // Converts string to boolean
       }
 
-      // Save on change
+      // Save to localStorage on change
       checkbox.addEventListener("change", function () {
         localStorage.setItem(id, checkbox.checked);
       });
     });
   });
 </script>
+
+{% endraw %}
