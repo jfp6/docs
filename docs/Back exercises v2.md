@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Back exercises 2
-nav_order: 13
+nav_order: 20
 ---
 
 <h2>Day 1</h2>
@@ -28,5 +28,5 @@ nav_order: 13
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Your dynamic exercise script -->
+<!-- Include the JS logic (no raw block inside) -->
 {% include exercise-tracker.html %}
