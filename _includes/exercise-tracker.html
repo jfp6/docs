@@ -118,30 +118,40 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
   renderHistory();
   renderChart();
 }
-
 function renderOverviewChart() {
   const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
   const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
 
+  // Get all unique dates from both days, sorted
   const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
-  const getCompletion = (history, total) => {
-    const map = {};
-    history.forEach(e => {
-      map[e.date] = Math.round((e.completed.length / total) * 100);
-    });
-    return allDates.map(date => map[date] || 0);
-  };
-
+  
   const day1Total = 12;
   const day2Total = 11;
-  const dataDay1 = getCompletion(day1, day1Total);
-  const dataDay2 = getCompletion(day2, day2Total);
+  
+  // Create maps for quick lookup of completion percentages by date
+  const day1Map = {};
+  const day2Map = {};
+  
+  day1.forEach(e => {
+    day1Map[e.date] = Math.round((e.completed.length / day1Total) * 100);
+  });
+  
+  day2.forEach(e => {
+    day2Map[e.date] = Math.round((e.completed.length / day2Total) * 100);
+  });
+  
+  // Calculate combined completion for each date, capped at 100%
+  const combinedData = allDates.map(date => {
+    const day1Percent = day1Map[date] || 0;
+    const day2Percent = day2Map[date] || 0;
+    const combined = day1Percent + day2Percent;
+    return Math.min(combined, 100); // Cap at 100%
+  });
 
   const ctx = document.getElementById("chart-overview").getContext("2d");
   if (window.overviewChart) {
     window.overviewChart.data.labels = allDates;
-    window.overviewChart.data.datasets[0].data = dataDay1;
-    window.overviewChart.data.datasets[1].data = dataDay2;
+    window.overviewChart.data.datasets[0].data = combinedData;
     window.overviewChart.update();
   } else {
     window.overviewChart = new Chart(ctx, {
@@ -150,14 +160,11 @@ function renderOverviewChart() {
         labels: allDates,
         datasets: [
           {
-            label: 'Day 1 %',
-            data: dataDay1,
-            backgroundColor: 'rgba(54, 162, 235, 0.6)'
-          },
-          {
-            label: 'Day 2 %',
-            data: dataDay2,
-            backgroundColor: 'rgba(255, 159, 64, 0.6)'
+            label: 'Combined Completion %',
+            data: combinedData,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
           }
         ]
       },
@@ -166,6 +173,28 @@ function renderOverviewChart() {
           y: {
             beginAtZero: true,
             max: 100
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              afterLabel: function(context) {
+                const date = context.label;
+                const day1Percent = day1Map[date] || 0;
+                const day2Percent = day2Map[date] || 0;
+                const uncapped = day1Percent + day2Percent;
+                
+                if (day1Percent > 0 && day2Percent > 0) {
+                  return `Day 1: ${day1Percent}%, Day 2: ${day2Percent}%` + 
+                         (uncapped > 100 ? ` (${uncapped}% total, capped at 100%)` : '');
+                } else if (day1Percent > 0) {
+                  return `Day 1: ${day1Percent}%`;
+                } else if (day2Percent > 0) {
+                  return `Day 2: ${day2Percent}%`;
+                }
+                return '';
+              }
+            }
           }
         }
       }
