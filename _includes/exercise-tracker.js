@@ -1,0 +1,208 @@
+<script>
+function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, historyId, clearBtnId) {
+  const container = document.getElementById(containerId);
+  const historyContainer = document.getElementById(historyId);
+  const chartCanvas = document.getElementById(chartId);
+  const resetButton = document.getElementById(resetBtnId);
+  const clearButton = document.getElementById(clearBtnId);
+
+  exercises.forEach(exercise => {
+    const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = id;
+
+    const saved = localStorage.getItem(id);
+    checkbox.checked = saved === "true";
+
+    checkbox.addEventListener("change", () => {
+      localStorage.setItem(id, checkbox.checked);
+    });
+
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(" " + exercise));
+    container.appendChild(label);
+    container.appendChild(document.createElement("br"));
+  });
+
+  resetButton.addEventListener("click", function () {
+    const completed = exercises.filter(exercise => {
+      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const checkbox = document.getElementById(id);
+      return checkbox && checkbox.checked;
+    });
+
+    if (completed.length > 0) {
+      const today = new Date().toISOString().split("T")[0];
+      const entry = { date: today, completed };
+      const key = `${dayId}-history`;
+      const history = JSON.parse(localStorage.getItem(key) || "[]");
+      history.push(entry);
+      localStorage.setItem(key, JSON.stringify(history));
+    }
+
+    exercises.forEach(exercise => {
+      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const checkbox = document.getElementById(id);
+      if (checkbox) {
+        checkbox.checked = false;
+        localStorage.removeItem(id);
+      }
+    });
+
+    renderHistory();
+    renderChart();
+    renderOverviewChart(); // update combined chart
+  });
+
+  clearButton.addEventListener("click", function () {
+    localStorage.removeItem(`${dayId}-history`);
+    renderHistory();
+    renderChart();
+    renderOverviewChart();
+  });
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+    historyContainer.innerHTML = `<h3>History ${dayId.toUpperCase()}</h3>`;
+    if (history.length === 0) {
+      historyContainer.innerHTML += "<p>No history.</p>";
+      return;
+    }
+    const list = document.createElement("ul");
+    history.forEach(entry => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
+      list.appendChild(li);
+    });
+    historyContainer.appendChild(list);
+  }
+
+  let chart;
+  function renderChart() {
+    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+    const labels = history.map(e => e.date);
+    const data = history.map(e => Math.round((e.completed.length / exercises.length) * 100));
+
+    const ctx = chartCanvas.getContext("2d");
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
+    } else {
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '% Completed',
+            data,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+  }
+
+  renderHistory();
+  renderChart();
+}
+
+function renderOverviewChart() {
+  const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
+  const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
+
+  const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
+  const getCompletion = (history, total) => {
+    const map = {};
+    history.forEach(e => {
+      map[e.date] = Math.round((e.completed.length / total) * 100);
+    });
+    return allDates.map(date => map[date] || 0);
+  };
+
+  const day1Total = 12;
+  const day2Total = 11;
+  const dataDay1 = getCompletion(day1, day1Total);
+  const dataDay2 = getCompletion(day2, day2Total);
+
+  const ctx = document.getElementById("chart-overview").getContext("2d");
+  if (window.overviewChart) {
+    window.overviewChart.data.labels = allDates;
+    window.overviewChart.data.datasets[0].data = dataDay1;
+    window.overviewChart.data.datasets[1].data = dataDay2;
+    window.overviewChart.update();
+  } else {
+    window.overviewChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: allDates,
+        datasets: [
+          {
+            label: 'Day 1 %',
+            data: dataDay1,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)'
+          },
+          {
+            label: 'Day 2 %',
+            data: dataDay2,
+            backgroundColor: 'rgba(255, 159, 64, 0.6)'
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  initExerciseList("day1", [
+    "Flexibility - FR back extension",
+    "Flexibility - FR thread the needle",
+    "Flexibility - FR cat/cow, childs pose, arm lift",
+    "Flexibility - FR snow angel",
+    "Flexibility - Pectoral stretch doorway (left side)",
+    "Low Back - Alt superman 3x20",
+    "Low Back - Decline back extension or standing back bend with medball",
+    "Mid Back - Bent over row - 10-15 lb 3x15",
+    "Mid Back - Bent over fly - 10-12 lb, 3x15",
+    "Glutes - Staggered RDL w/ 15 lb 3x15",
+    "Glutes - Dead lift - 15 lbs, 3x15",
+    "Shoulder - Wall walks (railroad tracks)"
+  ], "exercise-list-day1", "reset-exercises-day1", "chart-day1", "history-day1", "clear-history-day1");
+
+  initExerciseList("day2", [
+    "Flexibility - Open book (laying down)",
+    "Flexibility - Kneeling archer",
+    "Flexibility - Seated open book",
+    "Flexibility - Seated desk extension w/ lift",
+    "Low Back - Full superman 3x30s holds ",
+    "Low Back - Bird dog w/ crunch 3x30 (band)",
+    "Mid Back - Incremental flexion with medball",
+    "Mid Back - Pull ups 3x15",
+    "Glutes - Kneeling medball slam 3x15",
+    "Glutes - Hip thrusts 25 lbs, 3x15",
+    "Shoulders - Wall clock 12 to 6 left side"
+  ], "exercise-list-day2", "reset-exercises-day2", "chart-day2", "history-day2", "clear-history-day2");
+
+  renderOverviewChart();
+});
+</script>
