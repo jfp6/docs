@@ -14,7 +14,7 @@
       "Shoulders - Wall clock 12 to 6 left side"
     ];
 
-    const container = document.getElementById("exercise-list");
+    const container = document.getElementById("exercise-list2");
 
     exercises.forEach(exercise => {
       const id = "exercise-" + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -37,7 +37,7 @@
       container.appendChild(document.createElement("br"));
     });
 
-    document.getElementById("reset-exercises").addEventListener("click", function () {
+    document.getElementById("reset-exercises2").addEventListener("click", function () {
       exercises.forEach(exercise => {
         const id = "exercise-" + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
         const checkbox = document.getElementById(id);
