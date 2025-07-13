@@ -118,6 +118,7 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
   renderHistory();
   renderChart();
 }
+
 function renderOverviewChart() {
   const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
   const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
@@ -152,6 +153,9 @@ function renderOverviewChart() {
   if (window.overviewChart) {
     window.overviewChart.data.labels = allDates;
     window.overviewChart.data.datasets[0].data = combinedData;
+    // Store the maps for tooltip access
+    window.overviewChart.day1Map = day1Map;
+    window.overviewChart.day2Map = day2Map;
     window.overviewChart.update();
   } else {
     window.overviewChart = new Chart(ctx, {
@@ -180,8 +184,8 @@ function renderOverviewChart() {
             callbacks: {
               afterLabel: function(context) {
                 const date = context.label;
-                const day1Percent = day1Map[date] || 0;
-                const day2Percent = day2Map[date] || 0;
+                const day1Percent = window.overviewChart.day1Map[date] || 0;
+                const day2Percent = window.overviewChart.day2Map[date] || 0;
                 const uncapped = day1Percent + day2Percent;
                 
                 if (day1Percent > 0 && day2Percent > 0) {
@@ -199,6 +203,9 @@ function renderOverviewChart() {
         }
       }
     });
+    // Store the maps for tooltip access
+    window.overviewChart.day1Map = day1Map;
+    window.overviewChart.day2Map = day2Map;
   }
 }
 
