@@ -7,7 +7,7 @@ nav_order: 13
 <div id="exercise-list">
   <label>
     <input type="checkbox" id="exercise-back-stretch">
-    Back Stretch
+    Back Stretchy
   </label><br>
   <label>
     <input type="checkbox" id="exercise-back-strengthen">
