@@ -123,13 +123,11 @@ function renderOverviewChart() {
   const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
   const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
 
-  // Get all unique dates from both days, sorted
   const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
   
   const day1Total = 12;
   const day2Total = 11;
   
-  // Create maps for quick lookup of completion percentages by date
   const day1Map = {};
   const day2Map = {};
   
@@ -141,19 +139,17 @@ function renderOverviewChart() {
     day2Map[e.date] = Math.round((e.completed.length / day2Total) * 100);
   });
   
-  // Calculate combined completion for each date, capped at 100%
   const combinedData = allDates.map(date => {
     const day1Percent = day1Map[date] || 0;
     const day2Percent = day2Map[date] || 0;
     const combined = day1Percent + day2Percent;
-    return Math.min(combined, 100); // Cap at 100%
+    return Math.min(combined, 100);
   });
 
   const ctx = document.getElementById("chart-overview").getContext("2d");
   if (window.overviewChart) {
     window.overviewChart.data.labels = allDates;
     window.overviewChart.data.datasets[0].data = combinedData;
-    // Store the maps for tooltip access
     window.overviewChart.day1Map = day1Map;
     window.overviewChart.day2Map = day2Map;
     window.overviewChart.update();
@@ -162,15 +158,13 @@ function renderOverviewChart() {
       type: 'bar',
       data: {
         labels: allDates,
-        datasets: [
-          {
-            label: 'Combined Completion %',
-            data: combinedData,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-          }
-        ]
+        datasets: [{
+          label: 'Combined Completion %',
+          data: combinedData,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
       },
       options: {
         scales: {
@@ -178,32 +172,9 @@ function renderOverviewChart() {
             beginAtZero: true,
             max: 100
           }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              afterLabel: function(context) {
-                const date = context.label;
-                const day1Percent = window.overviewChart.day1Map[date] || 0;
-                const day2Percent = window.overviewChart.day2Map[date] || 0;
-                const uncapped = day1Percent + day2Percent;
-                
-                if (day1Percent > 0 && day2Percent > 0) {
-                  return `Day 1: ${day1Percent}%, Day 2: ${day2Percent}%` + 
-                         (uncapped > 100 ? ` (${uncapped}% total, capped at 100%)` : '');
-                } else if (day1Percent > 0) {
-                  return `Day 1: ${day1Percent}%`;
-                } else if (day2Percent > 0) {
-                  return `Day 2: ${day2Percent}%`;
-                }
-                return '';
-              }
-            }
-          }
         }
       }
     });
-    // Store the maps for tooltip access
     window.overviewChart.day1Map = day1Map;
     window.overviewChart.day2Map = day2Map;
   }
