@@ -11,43 +11,34 @@
       "Mid Back - Bent over fly - 10-12 lb, 3x15",
       "Glutes - Staggered RDL w/ 15 lb 3x15",
       "Glutes - Dead lift - 15 lbs, 3x15"
-      
-      // Add more exercises here
     ];
 
     const container = document.getElementById("exercise-list");
 
     exercises.forEach(exercise => {
-      const id = "exercise-" + exercise.toLowerCase().replace(/\s+/g, "-");
+      const id = "exercise-" + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-      // Create label and checkbox
       const label = document.createElement("label");
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = id;
 
-      // Load saved state
       const saved = localStorage.getItem(id);
       checkbox.checked = saved === "true";
 
-      // Save state on change
       checkbox.addEventListener("change", () => {
         localStorage.setItem(id, checkbox.checked);
       });
 
-      // Append to label
       label.appendChild(checkbox);
       label.appendChild(document.createTextNode(" " + exercise));
-
-      // Append label to container
       container.appendChild(label);
       container.appendChild(document.createElement("br"));
     });
 
-    // Reset button
     document.getElementById("reset-exercises").addEventListener("click", function () {
       exercises.forEach(exercise => {
-        const id = "exercise-" + exercise.toLowerCase().replace(/\s+/g, "-");
+        const id = "exercise-" + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
         const checkbox = document.getElementById(id);
         if (checkbox) {
           checkbox.checked = false;
