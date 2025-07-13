@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Back exercises
+title: Back exercises 2
 nav_order: 13
 ---
 
@@ -29,4 +29,4 @@ nav_order: 13
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Your dynamic exercise script -->
-{% include exercise-tracker.js %}
+{% include exercise-tracker.html %}
