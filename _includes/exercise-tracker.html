@@ -34,7 +34,9 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
     });
 
     if (completed.length > 0) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date().toLocaleDateString("en-CA", {
+  timeZone: "America/Denver"
+});
       const entry = { date: today, completed };
       const key = `${dayId}-history`;
       const history = JSON.parse(localStorage.getItem(key) || "[]");
