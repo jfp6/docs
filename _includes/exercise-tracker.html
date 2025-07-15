@@ -35,7 +35,7 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
 
     if (completed.length > 0) {
       const today = new Date().toLocaleDateString("en-CA", {
-        timeZone: "America/Denver"});
+       timeZone: "America/Denver"});
       const entry = { date: today, completed };
       const key = `${dayId}-history`;
       const history = JSON.parse(localStorage.getItem(key) || "[]");
@@ -72,26 +72,11 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
       return;
     }
     const list = document.createElement("ul");
-    history.forEach((entry, index) => {
-     const li = document.createElement("li");
-     li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}
-     <button class="edit-entry" data-index="${index}">Edit</button>`;
-    list.appendChild(li);
+    history.forEach(entry => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
+      list.appendChild(li);
     });
-
-    // history.forEach(entry => {
-    //   const li = document.createElement("li");
-    //   li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
-    //   list.appendChild(li);
-    // });
-    // Delegate edit button clicks
-    historyContainer.addEventListener("click", function (e) {
-      if (e.target.classList.contains("edit-entry")) {
-        const index = parseInt(e.target.dataset.index);
-        openEditModal(index);
-      }
-    });
-
     historyContainer.appendChild(list);
   }
 
@@ -130,59 +115,6 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
       });
     }
   }
-  function openEditModal(index) {
-      const key = `${dayId}-history`;
-      const history = JSON.parse(localStorage.getItem(key) || "[]");
-      const entry = history[index];
-
-      const modal = document.getElementById("edit-modal");
-      const content = document.getElementById("edit-modal-content");
-      const title = document.getElementById("edit-modal-title");
-      const saveBtn = document.getElementById("edit-save-btn");
-      const cancelBtn = document.getElementById("edit-cancel-btn");
-
-      title.textContent = `Edit ${entry.date}`;
-      content.innerHTML = "";
-
-      exercises.forEach(ex => {
-        const id = "edit-" + ex.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = id;
-        checkbox.checked = entry.completed.includes(ex);
-
-        const label = document.createElement("label");
-        label.htmlFor = id;
-        label.textContent = " " + ex;
-
-        const div = document.createElement("div");
-        div.appendChild(checkbox);
-        div.appendChild(label);
-
-        content.appendChild(div);
-      });
-
-      modal.style.display = "flex";
-
-      cancelBtn.onclick = () => {
-        modal.style.display = "none";
-      };
-
-      saveBtn.onclick = () => {
-        const updated = exercises.filter(ex => {
-          const id = "edit-" + ex.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-          return document.getElementById(id).checked;
-        });
-
-        history[index].completed = updated;
-        localStorage.setItem(key, JSON.stringify(history));
-        modal.style.display = "none";
-        renderHistory();
-        renderChart();
-        renderOverviewChart();
-      };
-    }
 
   renderHistory();
   renderChart();
