@@ -1,5 +1,3 @@
-
-
 ---
 layout: default
 title: Back exercises 2
