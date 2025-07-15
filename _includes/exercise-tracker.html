@@ -1,252 +1,223 @@
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  // Wrap the entire initialization in a try-catch block to prevent silent failures.
+function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, historyId, clearBtnId) {
+  const container = document.getElementById(containerId);
+  const historyContainer = document.getElementById(historyId);
+  const chartCanvas = document.getElementById(chartId);
+  const resetButton = document.getElementById(resetBtnId);
+  const clearButton = document.getElementById(clearBtnId);
+
+  exercises.forEach(exercise => {
+    const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = id;
+
+    const saved = localStorage.getItem(id);
+    checkbox.checked = saved === "true";
+
+    checkbox.addEventListener("change", () => {
+      localStorage.setItem(id, checkbox.checked);
+    });
+
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(" " + exercise));
+    container.appendChild(label);
+    container.appendChild(document.createElement("br"));
+  });
+
+  resetButton.addEventListener("click", function () {
+    const completed = exercises.filter(exercise => {
+      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const checkbox = document.getElementById(id);
+      return checkbox && checkbox.checked;
+    });
+
+    if (completed.length > 0) {
+      const today = new Date().toLocaleDateString("en-CA", {
+       timeZone: "America/Denver"});
+      const entry = { date: today, completed };
+      const key = `${dayId}-history`;
+      const history = JSON.parse(localStorage.getItem(key) || "[]");
+      history.push(entry);
+      localStorage.setItem(key, JSON.stringify(history));
+    }
+
+    exercises.forEach(exercise => {
+      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const checkbox = document.getElementById(id);
+      if (checkbox) {
+        checkbox.checked = false;
+        localStorage.removeItem(id);
+      }
+    });
+
+    renderHistory();
+    renderChart();
+    renderOverviewChart();
+  });
+
+  clearButton.addEventListener("click", function () {
+    localStorage.removeItem(`${dayId}-history`);
+    renderHistory();
+    renderChart();
+    renderOverviewChart();
+  });
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+    historyContainer.innerHTML = `<h3>History ${dayId.toUpperCase()}</h3>`;
+    if (history.length === 0) {
+      historyContainer.innerHTML += "<p>No history.</p>";
+      return;
+    }
+    const list = document.createElement("ul");
+    history.forEach(entry => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
+      list.appendChild(li);
+    });
+    historyContainer.appendChild(list);
+  }
+
+  let chart;
+  function renderChart() {
+    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+    const labels = history.map(e => e.date);
+    const data = history.map(e => Math.round((e.completed.length / exercises.length) * 100));
+
+    const ctx = chartCanvas.getContext("2d");
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
+    } else {
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '% Completed',
+            data,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+  }
+
+  renderHistory();
+  renderChart();
+}
+
+function renderOverviewChart() {
+  const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
+  const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
+
+  const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
+  
+  const day1Total = 12;
+  const day2Total = 11;
+  
+  const day1Map = {};
+  const day2Map = {};
+  
+  day1.forEach(e => {
+    day1Map[e.date] = Math.round((e.completed.length / day1Total) * 100);
+  });
+  
+  day2.forEach(e => {
+    day2Map[e.date] = Math.round((e.completed.length / day2Total) * 100);
+  });
+  
+  const combinedData = allDates.map(date => {
+    const day1Percent = day1Map[date] || 0;
+    const day2Percent = day2Map[date] || 0;
+    const combined = day1Percent + day2Percent;
+    return Math.min(combined, 100);
+  });
+
+  const ctx = document.getElementById("chart-overview").getContext("2d");
+  if (window.overviewChart) {
+    window.overviewChart.data.labels = allDates;
+    window.overviewChart.data.datasets[0].data = combinedData;
+    window.overviewChart.day1Map = day1Map;
+    window.overviewChart.day2Map = day2Map;
+    window.overviewChart.update();
+  } else {
+    window.overviewChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: allDates,
+        datasets: [{
+          label: 'Combined Completion %',
+          data: combinedData,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+    window.overviewChart.day1Map = day1Map;
+    window.overviewChart.day2Map = day2Map;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("Starting exercise tracker initialization...");
+  
   try {
-    // ===================================================================
-    // 1. GET ALL ELEMENTS FROM THE PAGE & VERIFY THEY EXIST
-    // ===================================================================
-    const modal = document.getElementById("edit-modal");
-    if (!modal) throw new Error("Element #edit-modal not found.");
-
-    const modalCloseBtn = modal.querySelector(".close-button");
-    if (!modalCloseBtn) throw new Error("Element .close-button within the modal not found.");
-
-    const modalSaveBtn = document.getElementById("modal-save");
-    if (!modalSaveBtn) throw new Error("Element #modal-save not found.");
-
-    const modalDeleteBtn = document.getElementById("modal-delete");
-    if (!modalDeleteBtn) throw new Error("Element #modal-delete not found.");
-    
-    const modalDateInput = document.getElementById("modal-date");
-    if (!modalDateInput) throw new Error("Element #modal-date not found.");
-
-    const modalExerciseListDiv = document.getElementById("modal-exercise-list");
-    if (!modalExerciseListDiv) throw new Error("Element #modal-exercise-list not found.");
-
-    let overviewChart; // To hold the chart instance
-
-    // ===================================================================
-    // 2. DEFINE ALL FUNCTIONS
-    // ===================================================================
-
-    function closeModal() {
-      modal.style.display = "none";
-    }
-
-    function openModal(dayId, index, allExercises) {
-      modal.dataset.dayId = dayId;
-      modal.dataset.index = index;
-      
-      const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-      const entry = index > -1 ? history[index] : null;
-
-      // FIX: Use the correct, dynamic date method.
-      const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Denver" });
-      modalDateInput.value = entry ? entry.date : today;
-
-      modalExerciseListDiv.innerHTML = '';
-      allExercises.forEach(exercise => {
-        const checkboxId = `modal-ex-${exercise.replace(/[^a-z0-9]/gi, '')}`;
-        const isChecked = entry && entry.completed.includes(exercise);
-        const label = document.createElement('label');
-        label.innerHTML = `<input type="checkbox" value="${exercise}" id="${checkboxId}" ${isChecked ? 'checked' : ''}> ${exercise}`;
-        modalExerciseListDiv.appendChild(label);
-      });
-
-      modalDeleteBtn.style.display = index > -1 ? 'inline-block' : 'none';
-      modal.style.display = "block";
-    }
-    
-    function renderOverviewChart() {
-      const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
-      const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
-      const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
-      const day1Total = 12;
-      const day2Total = 11;
-      const day1Map = day1.reduce((acc, e) => ({ ...acc, [e.date]: Math.round((e.completed.length / day1Total) * 100) }), {});
-      const day2Map = day2.reduce((acc, e) => ({ ...acc, [e.date]: Math.round((e.completed.length / day2Total) * 100) }), {});
-      const combinedData = allDates.map(date => Math.min((day1Map[date] || 0) + (day2Map[date] || 0), 100));
-      const ctx = document.getElementById("chart-overview").getContext("2d");
-
-      if (overviewChart) {
-          overviewChart.data.labels = allDates;
-          overviewChart.data.datasets[0].data = combinedData;
-          overviewChart.update();
-      } else {
-          overviewChart = new Chart(ctx, {
-              type: 'bar',
-              data: { labels: allDates, datasets: [{ label: 'Combined Completion %', data: combinedData, backgroundColor: 'rgba(153, 102, 255, 0.6)', borderColor: 'rgba(153, 102, 255, 1)', borderWidth: 1 }] },
-              options: { scales: { y: { beginAtZero: true, max: 100 } } }
-          });
-      }
-    }
-
-    function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, historyId, clearBtnId) {
-      const container = document.getElementById(containerId);
-      if (!container) throw new Error(`Container #${containerId} not found.`);
-      const historyContainer = document.getElementById(historyId);
-      if (!historyContainer) throw new Error(`Container #${historyId} not found.`);
-      const chartCanvas = document.getElementById(chartId);
-      if (!chartCanvas) throw new Error(`Canvas #${chartId} not found.`);
-      const resetButton = document.getElementById(resetBtnId);
-      if (!resetButton) throw new Error(`Button #${resetBtnId} not found.`);
-      const clearButton = document.getElementById(clearBtnId);
-      if (!clearButton) throw new Error(`Button #${clearBtnId} not found.`);
-
-      let chart;
-
-      function renderHistory() {
-        const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-        historyContainer.innerHTML = `<h3>History ${dayId.toUpperCase()}</h3>`;
-        if (history.length === 0) {
-          historyContainer.innerHTML += "<p>No history.</p>";
-        } else {
-          const list = document.createElement("ul");
-          history.forEach((entry, index) => {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")} `;
-            const editButton = document.createElement("button");
-            editButton.textContent = "Edit";
-            editButton.style.marginLeft = '10px';
-            editButton.onclick = () => openModal(dayId, index, exercises);
-            li.appendChild(editButton);
-            list.appendChild(li);
-          });
-          historyContainer.appendChild(list);
-        }
-        let addBtn = document.getElementById(`add-entry-${dayId}`);
-        if (!addBtn) {
-          addBtn = document.createElement("button");
-          addBtn.id = `add-entry-${dayId}`;
-          addBtn.textContent = "Add New Entry";
-          addBtn.style.marginTop = '10px';
-          addBtn.onclick = () => openModal(dayId, -1, exercises);
-          historyContainer.insertAdjacentElement('afterend', addBtn);
-        }
-      }
-
-      function renderChart() {
-        const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-        const labels = history.map(e => e.date);
-        const data = history.map(e => Math.round((e.completed.length / exercises.length) * 100));
-        const ctx = chartCanvas.getContext("2d");
-        if (chart) {
-          chart.data.labels = labels;
-          chart.data.datasets[0].data = data;
-          chart.update();
-        } else {
-          chart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: '% Completed', data, backgroundColor: 'rgba(75, 192, 192, 0.6)', borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 1 }] },
-            options: { scales: { y: { beginAtZero: true, max: 100 } } }
-          });
-        }
-      }
-      
-      const refreshDayUI = () => { renderHistory(); renderChart(); };
-      window.refreshTracker[dayId] = refreshDayUI;
-
-      resetButton.addEventListener("click", () => {
-        const completed = exercises.filter(ex => document.getElementById(`${dayId}-exercise-${ex.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`)?.checked);
-        if (completed.length > 0) {
-          const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Denver" });
-          const entry = { date: today, completed };
-          const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-          history.push(entry);
-          history.sort((a, b) => new Date(a.date) - new Date(b.date));
-          localStorage.setItem(`${dayId}-history`, JSON.stringify(history));
-        }
-        exercises.forEach(ex => {
-          const cb = document.getElementById(`${dayId}-exercise-${ex.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`);
-          if (cb) { cb.checked = false; localStorage.removeItem(cb.id); }
-        });
-        refreshDayUI();
-        renderOverviewChart();
-      });
-
-      clearButton.addEventListener("click", () => {
-        if (confirm(`Are you sure you want to clear all history for ${dayId.toUpperCase()}?`)) {
-          localStorage.removeItem(`${dayId}-history`);
-          refreshDayUI();
-          renderOverviewChart();
-        }
-      });
-      
-      // Create initial checkboxes
-      exercises.forEach(exercise => {
-        const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = id;
-        checkbox.checked = localStorage.getItem(id) === "true";
-        checkbox.addEventListener("change", () => localStorage.setItem(id, checkbox.checked));
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + exercise));
-        container.appendChild(label);
-        container.appendChild(document.createElement("br"));
-      });
-      
-      refreshDayUI(); // Initial render
-    }
-
-    // ===================================================================
-    // 3. ATTACH EVENT LISTENERS
-    // ===================================================================
-    modalCloseBtn.onclick = closeModal;
-    window.onclick = (event) => { if (event.target == modal) closeModal(); };
-
-    modalSaveBtn.onclick = () => {
-      const { dayId, index: indexStr } = modal.dataset;
-      const index = parseInt(indexStr, 10);
-      if (!modalDateInput.value) { alert("Please select a date."); return; }
-      const completed = Array.from(modalExerciseListDiv.querySelectorAll('input:checked')).map(cb => cb.value);
-      const newEntry = { date: modalDateInput.value, completed };
-      const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-      if (index > -1) { history[index] = newEntry; } else { history.push(newEntry); }
-      history.sort((a, b) => new Date(a.date) - new Date(b.date));
-      localStorage.setItem(`${dayId}-history`, JSON.stringify(history));
-      closeModal();
-      window.refreshTracker[dayId]();
-      renderOverviewChart();
-    };
-
-    modalDeleteBtn.onclick = () => {
-      if (!confirm("Are you sure you want to delete this entry?")) return;
-      const { dayId, index: indexStr } = modal.dataset;
-      const index = parseInt(indexStr, 10);
-      const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-      history.splice(index, 1);
-      localStorage.setItem(`${dayId}-history`, JSON.stringify(history));
-      closeModal();
-      window.refreshTracker[dayId]();
-      renderOverviewChart();
-    };
-
-    // ===================================================================
-    // 4. START THE APPLICATION
-    // ===================================================================
     initExerciseList("day1", [
-        "Flexibility - FR back extension", "Flexibility - FR thread the needle", "Flexibility - FR cat/cow, childs pose, arm lift",
-        "Flexibility - FR snow angel", "Flexibility - Pectoral stretch doorway (left side)", "Low Back - Alt superman 3x20",
-        "Low Back - Decline back extension or standing back bend with medball", "Mid Back - Bent over row - 10-15 lb 3x15",
-        "Mid Back - Bent over fly - 10-12 lb, 3x15", "Glutes - Staggered RDL w/ 15 lb 3x15", "Glutes - Dead lift - 15 lbs, 3x15",
-        "Shoulder - Wall walks (railroad tracks)"
+      "Flexibility - FR back extension",
+      "Flexibility - FR thread the needle",
+      "Flexibility - FR cat/cow, childs pose, arm lift",
+      "Flexibility - FR snow angel",
+      "Flexibility - Pectoral stretch doorway (left side)",
+      "Low Back - Alt superman 3x20",
+      "Low Back - Decline back extension or standing back bend with medball",
+      "Mid Back - Bent over row - 10-15 lb 3x15",
+      "Mid Back - Bent over fly - 10-12 lb, 3x15",
+      "Glutes - Staggered RDL w/ 15 lb 3x15",
+      "Glutes - Dead lift - 15 lbs, 3x15",
+      "Shoulder - Wall walks (railroad tracks)"
     ], "exercise-list-day1", "reset-exercises-day1", "chart-day1", "history-day1", "clear-history-day1");
 
     initExerciseList("day2", [
-        "Flexibility - Open book (laying down)", "Flexibility - Kneeling archer", "Flexibility - Seated open book",
-        "Flexibility - Seated desk extension w/ lift", "Low Back - Full superman 3x30s holds ", "Low Back - Bird dog w/ crunch 3x30 (band)",
-        "Mid Back - Incremental flexion with medball", "Mid Back - Pull ups 3x15", "Glutes - Kneeling medball slam 3x15",
-        "Glutes - Hip thrusts 25 lbs, 3x15", "Shoulders - Wall clock 12 to 6 left side"
+      "Flexibility - Open book (laying down)",
+      "Flexibility - Kneeling archer",
+      "Flexibility - Seated open book",
+      "Flexibility - Seated desk extension w/ lift",
+      "Low Back - Full superman 3x30s holds ",
+      "Low Back - Bird dog w/ crunch 3x30 (band)",
+      "Mid Back - Incremental flexion with medball",
+      "Mid Back - Pull ups 3x15",
+      "Glutes - Kneeling medball slam 3x15",
+      "Glutes - Hip thrusts 25 lbs, 3x15",
+      "Shoulders - Wall clock 12 to 6 left side"
     ], "exercise-list-day2", "reset-exercises-day2", "chart-day2", "history-day2", "clear-history-day2");
 
     renderOverviewChart();
-    console.log("✅ Exercise tracker initialized successfully!");
-
+    console.log("Exercise tracker initialized successfully!");
   } catch (error) {
-    console.error("❌ A fatal error occurred during initialization:", error);
-    alert("The exercise tracker failed to load. Please open the developer console (F12) to see the error details.");
+    console.error("Error initializing exercise tracker:", error);
   }
 });
 </script>
