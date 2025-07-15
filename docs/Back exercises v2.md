@@ -25,6 +25,16 @@ nav_order: 20
 <h2>Combined Completion Chart</h2>
 <canvas id="chart-overview" width="600" height="300"></canvas>
 
+<div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:500px; width:90%;">
+    <h3 id="edit-modal-title">Edit Entry</h3>
+    <div id="edit-modal-content"></div>
+    <button id="edit-save-btn">Save</button>
+    <button id="edit-cancel-btn">Cancel</button>
+  </div>
+</div>
+
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
