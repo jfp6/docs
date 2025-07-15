@@ -114,14 +114,27 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
     // Create exercise checkboxes
     exercises.forEach(exercise => {
         const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        
+        // ** THE FIX IS HERE **
+        // Create elements programmatically to get a direct reference
         const label = document.createElement("label");
-        label.innerHTML = `<input type="checkbox" id="${id}"> ${exercise}`;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = id;
+
+        // Check local storage for saved state
+        const saved = localStorage.getItem(id);
+        checkbox.checked = saved === "true";
+
+        // Add event listener to save state on change
+        checkbox.addEventListener("change", () => {
+            localStorage.setItem(id, checkbox.checked);
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + exercise));
         container.appendChild(label);
         container.appendChild(document.createElement("br"));
-
-        const checkbox = document.getElementById(id);
-        checkbox.checked = localStorage.getItem(id) === "true";
-        checkbox.addEventListener("change", () => localStorage.setItem(id, checkbox.checked));
     });
 
     function renderHistory() {
@@ -196,7 +209,8 @@ function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, hi
     resetButton.addEventListener("click", () => {
         const completed = exercises.filter(exercise => {
             const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-            return document.getElementById(id)?.checked;
+            const checkbox = document.getElementById(id);
+            return checkbox && checkbox.checked;
         });
 
         if (completed.length > 0) {
