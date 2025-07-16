@@ -9,7 +9,6 @@ nav_order: 20
 <button id="reset-exercises-day1">Submit Day 1</button>
 <button id="clear-history-day1">Clear History Day 1</button>
 <canvas id="chart-day1" width="400" height="200"></canvas>
-<div id="history-day1"></div>
 
 <hr>
 
@@ -18,13 +17,14 @@ nav_order: 20
 <button id="reset-exercises-day2">Submit Day 2</button>
 <button id="clear-history-day2">Clear History Day 2</button>
 <canvas id="chart-day2" width="400" height="200"></canvas>
-<div id="history-day2"></div>
 
 <hr>
 
 <h2>Combined Completion Chart</h2>
 <canvas id="chart-overview" width="600" height="300"></canvas>
 
+<div id="history-day1"></div>
+<div id="history-day2"></div>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
