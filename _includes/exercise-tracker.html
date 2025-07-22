@@ -1,227 +1,278 @@
 <script>
-function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, historyId, clearBtnId) {
-  const container = document.getElementById(containerId);
-  const historyContainer = document.getElementById(historyId);
-  const chartCanvas = document.getElementById(chartId);
-  const resetButton = document.getElementById(resetBtnId);
-  const clearButton = document.getElementById(clearBtnId);
+// Helper function to get min and max dates from history
+function getMinMaxDates() {
+    const day1History = JSON.parse(localStorage.getItem("day1-history") || "[]");
+    const day2History = JSON.parse(localStorage.getItem("day2-history") || "[]");
 
-  exercises.forEach(exercise => {
-    const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.id = id;
-
-    const saved = localStorage.getItem(id);
-    checkbox.checked = saved === "true";
-
-    checkbox.addEventListener("change", () => {
-      localStorage.setItem(id, checkbox.checked);
-    });
-
-    label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(" " + exercise));
-    container.appendChild(label);
-    container.appendChild(document.createElement("br"));
-  });
-
-  resetButton.addEventListener("click", function () {
-    const completed = exercises.filter(exercise => {
-      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const checkbox = document.getElementById(id);
-      return checkbox && checkbox.checked;
-    });
-
-    if (completed.length > 0) {
-      const today = new Date().toLocaleDateString("en-CA", {
-       timeZone: "America/Denver"});
-      const entry = { date: today, completed };
-      const key = `${dayId}-history`;
-      const history = JSON.parse(localStorage.getItem(key) || "[]");
-      history.push(entry);
-      localStorage.setItem(key, JSON.stringify(history));
+    const allDates = [...day1History.map(e => e.date), ...day2History.map(e => e.date)];
+    if (allDates.length === 0) {
+        return { min: null, max: null };
     }
+
+    const sortedDates = allDates.sort();
+    return { min: sortedDates[0], max: sortedDates[sortedDates.length - 1] };
+}
+
+// Helper function to generate a date range
+function generateDateRange(startDateStr, endDateStr) {
+    const dates = [];
+    let currentDate = new Date(startDateStr + 'T12:00:00'); // Add T12:00:00 to avoid timezone issues
+    const endDate = new Date(endDateStr + 'T12:00:00');
+
+    while (currentDate <= endDate) {
+        dates.push(currentDate.toISOString().slice(0, 10)); // Format as YYYY-MM-DD
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dates;
+}
+
+
+function initExerciseList(dayId, exercises, containerId, resetBtnId, chartId, historyId, clearBtnId) {
+    const container = document.getElementById(containerId);
+    const historyContainer = document.getElementById(historyId);
+    const chartCanvas = document.getElementById(chartId);
+    const resetButton = document.getElementById(resetBtnId);
+    const clearButton = document.getElementById(clearBtnId);
 
     exercises.forEach(exercise => {
-      const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const checkbox = document.getElementById(id);
-      if (checkbox) {
-        checkbox.checked = false;
-        localStorage.removeItem(id);
-      }
+        const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = id;
+
+        const saved = localStorage.getItem(id);
+        checkbox.checked = saved === "true";
+
+        checkbox.addEventListener("change", () => {
+            localStorage.setItem(id, checkbox.checked);
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + exercise));
+        container.appendChild(label);
+        container.appendChild(document.createElement("br"));
     });
 
-    renderHistory();
-    renderChart();
-    renderOverviewChart();
-  });
+    resetButton.addEventListener("click", function () {
+        const completed = exercises.filter(exercise => {
+            const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            const checkbox = document.getElementById(id);
+            return checkbox && checkbox.checked;
+        });
 
-  clearButton.addEventListener("click", function () {
-    localStorage.removeItem(`${dayId}-history`);
-    renderHistory();
-    renderChart();
-    renderOverviewChart();
-  });
-
-  function renderHistory() {
-    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-    historyContainer.innerHTML = `<h3>History ${dayId.toUpperCase()}</h3>`;
-    if (history.length === 0) {
-      historyContainer.innerHTML += "<p>No history.</p>";
-      return;
-    }
-    const list = document.createElement("ul");
-    history.forEach(entry => {
-      const li = document.createElement("li");
-      li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
-      list.appendChild(li);
-    });
-    historyContainer.appendChild(list);
-  }
-
-  let chart;
-  function renderChart() {
-    const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
-    const labels = history.map(e => e.date);
-    const data = history.map(e => Math.round((e.completed.length / exercises.length) * 100));
-
-    const ctx = chartCanvas.getContext("2d");
-    if (chart) {
-      chart.data.labels = labels;
-      chart.data.datasets[0].data = data;
-      chart.update();
-    } else {
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: '% Completed',
-            data,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100
+        if (completed.length > 0) {
+            const today = new Date().toLocaleDateString("en-CA", {
+                timeZone: "America/Denver"
+            });
+            const entry = { date: today, completed };
+            const key = `${dayId}-history`;
+            const history = JSON.parse(localStorage.getItem(key) || "[]");
+            // Check if an entry for today already exists, if so, update it.
+            const todayIndex = history.findIndex(item => item.date === today);
+            if (todayIndex > -1) {
+                history[todayIndex] = entry;
+            } else {
+                history.push(entry);
             }
-          }
+            localStorage.setItem(key, JSON.stringify(history));
         }
-      });
-    }
-  }
 
-  renderHistory();
-  renderChart();
+        exercises.forEach(exercise => {
+            const id = `${dayId}-exercise-` + exercise.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.checked = false;
+                localStorage.removeItem(id);
+            }
+        });
+
+        renderHistory();
+        renderChart();
+        renderOverviewChart();
+    });
+
+    clearButton.addEventListener("click", function () {
+        localStorage.removeItem(`${dayId}-history`);
+        renderHistory();
+        renderChart();
+        renderOverviewChart();
+    });
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+        historyContainer.innerHTML = `<h3>History ${dayId.toUpperCase()}</h3>`;
+        if (history.length === 0) {
+            historyContainer.innerHTML += "<p>No history.</p>";
+            return;
+        }
+        const list = document.createElement("ul");
+        history.forEach(entry => {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${entry.date}:</strong> ${entry.completed.join(", ")}`;
+            list.appendChild(li);
+        });
+        historyContainer.appendChild(list);
+    }
+
+    let chart;
+    function renderChart() {
+        const history = JSON.parse(localStorage.getItem(`${dayId}-history`) || "[]");
+        const { min, max } = getMinMaxDates();
+        
+        let labels = [];
+        let data = [];
+
+        if (min && max) {
+            const allDates = generateDateRange(min, max);
+            const historyMap = {};
+            history.forEach(entry => {
+                historyMap[entry.date] = Math.round((entry.completed.length / exercises.length) * 100);
+            });
+
+            labels = allDates;
+            data = allDates.map(date => historyMap[date] !== undefined ? historyMap[date] : 0);
+        }
+
+        const ctx = chartCanvas.getContext("2d");
+        if (chart) {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update();
+        } else {
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '% Completed',
+                        data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    renderHistory();
+    renderChart();
 }
 
 function renderOverviewChart() {
-  const day1 = JSON.parse(localStorage.getItem("day1-history") || "[]");
-  const day2 = JSON.parse(localStorage.getItem("day2-history") || "[]");
+    const day1History = JSON.parse(localStorage.getItem("day1-history") || "[]");
+    const day2History = JSON.parse(localStorage.getItem("day2-history") || "[]");
 
-  const allDates = Array.from(new Set([...day1, ...day2].map(e => e.date))).sort();
-  
-  const day1Total = 12;
-  const day2Total = 11;
-  
-  const day1Map = {};
-  const day2Map = {};
-  
-  day1.forEach(e => {
-    day1Map[e.date] = Math.round((e.completed.length / day1Total) * 100);
-  });
-  
-  day2.forEach(e => {
-    day2Map[e.date] = Math.round((e.completed.length / day2Total) * 100);
-  });
-  
-  const combinedData = allDates.map(date => {
-    const day1Percent = day1Map[date] || 0;
-    const day2Percent = day2Map[date] || 0;
-    const combined = day1Percent + day2Percent;
-    return Math.min(combined, 100);
-  });
+    const { min, max } = getMinMaxDates();
 
-  const ctx = document.getElementById("chart-overview").getContext("2d");
-  if (window.overviewChart) {
-    window.overviewChart.data.labels = allDates;
-    window.overviewChart.data.datasets[0].data = combinedData;
-    window.overviewChart.day1Map = day1Map;
-    window.overviewChart.day2Map = day2Map;
-    window.overviewChart.update();
-  } else {
-    window.overviewChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: allDates,
-        datasets: [{
-          label: 'Combined Completion %',
-          data: combinedData,
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100
-          }
-        }
-      }
-    });
-    window.overviewChart.day1Map = day1Map;
-    window.overviewChart.day2Map = day2Map;
-  }
+    let allDates = [];
+    let combinedData = [];
+
+    if (min && max) {
+        allDates = generateDateRange(min, max);
+
+        const day1Total = 12; // Assuming these are fixed totals
+        const day2Total = 11; // Assuming these are fixed totals
+
+        const day1Map = {};
+        const day2Map = {};
+
+        day1History.forEach(e => {
+            day1Map[e.date] = Math.round((e.completed.length / day1Total) * 100);
+        });
+
+        day2History.forEach(e => {
+            day2Map[e.date] = Math.round((e.completed.length / day2Total) * 100);
+        });
+
+        combinedData = allDates.map(date => {
+            const day1Percent = day1Map[date] !== undefined ? day1Map[date] : 0;
+            const day2Percent = day2Map[date] !== undefined ? day2Map[date] : 0;
+            const combined = day1Percent + day2Percent;
+            return Math.min(combined, 100);
+        });
+    }
+
+    const ctx = document.getElementById("chart-overview").getContext("2d");
+    if (window.overviewChart) {
+        window.overviewChart.data.labels = allDates;
+        window.overviewChart.data.datasets[0].data = combinedData;
+        window.overviewChart.update();
+    } else {
+        window.overviewChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: allDates,
+                datasets: [{
+                    label: 'Combined Completion %',
+                    data: combinedData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Starting exercise tracker initialization...");
- 
-  try {
-    initExerciseList("day1", [
-      "Flexibility - FR back extension",
-      "Flexibility - FR thread the needle",
-      "Flexibility - FR cat/cow, childs pose, arm lift",
-      "Flexibility - FR snow angel",
-      "Flexibility - Pectoral stretch doorway (left side)",
-      "Low Back - Alt superman 3x20",
-      "Low Back - Decline back extension or standing back bend with medball",
-      "Mid Back - Bent over row - 10-15 lb 3x15",
-      "Mid Back - Bent over fly - 10-12 lb, 3x15",
-      "Glutes - Staggered RDL w/ 15 lb 3x15",
-      "Glutes - Dead lift - 15 lbs, 3x15",
-      "Glutes - Lunges 3x15",
-      "Shoulder - Wall walks (railroad tracks)",
-      "Quadratus Lumborum - Lacrosse ball w/ movement"
-    ], "exercise-list-day1", "reset-exercises-day1", "chart-day1", "history-day1", "clear-history-day1");
+    console.log("Starting exercise tracker initialization...");
 
-    initExerciseList("day2", [
-      "Flexibility - Open book (laying down)",
-      "Flexibility - Kneeling archer",
-      "Flexibility - Seated open book",
-      "Flexibility - Seated desk extension w/ lift",
-      "Low Back - Full superman 3x30s holds ",
-      "Low Back - Bird dog w/ crunch 3x30 (band)",
-      "Mid Back - Incremental flexion with medball",
-      "Mid Back - Pull ups 3x15",
-      "Glutes - Kneeling medball slam 3x15",
-      "Glutes - Hip thrusts 25 lbs, 3x15",
-      "Glutes - Squats 3x15",
-      "Shoulders - Wall clock 12 to 6 left side",
-      "Paraspinals - Lacrosse ball w/ movement"
-    ], "exercise-list-day2", "reset-exercises-day2", "chart-day2", "history-day2", "clear-history-day2");
+    try {
+        initExerciseList("day1", [
+            "Flexibility - FR back extension",
+            "Flexibility - FR thread the needle",
+            "Flexibility - FR cat/cow, childs pose, arm lift",
+            "Flexibility - FR snow angel",
+            "Flexibility - Pectoral stretch doorway (left side)",
+            "Low Back - Alt superman 3x20",
+            "Low Back - Decline back extension or standing back bend with medball",
+            "Mid Back - Bent over row - 10-15 lb 3x15",
+            "Mid Back - Bent over fly - 10-12 lb, 3x15",
+            "Glutes - Staggered RDL w/ 15 lb 3x15",
+            "Glutes - Dead lift - 15 lbs, 3x15",
+            "Glutes - Lunges 3x15",
+            "Shoulder - Wall walks (railroad tracks)",
+            "Quadratus Lumborum - Lacrosse ball w/ movement"
+        ], "exercise-list-day1", "reset-exercises-day1", "chart-day1", "history-day1", "clear-history-day1");
 
-    renderOverviewChart();
-    console.log("Exercise tracker initialized successfully!");
-  } catch (error) {
-    console.error("Error initializing exercise tracker:", error);
-  }
+        initExerciseList("day2", [
+            "Flexibility - Open book (laying down)",
+            "Flexibility - Kneeling archer",
+            "Flexibility - Seated open book",
+            "Flexibility - Seated desk extension w/ lift",
+            "Low Back - Full superman 3x30s holds ",
+            "Low Back - Bird dog w/ crunch 3x30 (band)",
+            "Mid Back - Incremental flexion with medball",
+            "Mid Back - Pull ups 3x15",
+            "Glutes - Kneeling medball slam 3x15",
+            "Glutes - Hip thrusts 25 lbs, 3x15",
+            "Glutes - Squats 3x15",
+            "Shoulders - Wall clock 12 to 6 left side",
+            "Paraspinals - Lacrosse ball w/ movement"
+        ], "exercise-list-day2", "reset-exercises-day2", "chart-day2", "history-day2", "clear-history-day2");
+
+        renderOverviewChart();
+        console.log("Exercise tracker initialized successfully!");
+    } catch (error) {
+        console.error("Error initializing exercise tracker:", error);
+    }
 });
 </script>
