@@ -23,11 +23,23 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 {% raw %}
 
 <div id="text-cleaner-app">
-  <textarea id="inputText" rows="8" style="width:100%;"></textarea>
+  <textarea
+    id="inputText"
+    rows="8"
+    style="width:100%;"
+    oninput="cleanText()"
+    placeholder="Type or paste text here..."
+  ></textarea>
+
   <br><br>
-  <button type="button" onclick="cleanText()">Clean Text</button>
-  <br><br>
-  <textarea id="outputText" rows="8" style="width:100%;"></textarea>
+
+  <textarea
+    id="outputText"
+    rows="8"
+    style="width:100%;"
+    placeholder="Cleaned text appears here..."
+    readonly
+  ></textarea>
 </div>
 
 <script>
