@@ -20,10 +20,4 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 [Modified from this source.](https://carlomonjaraztec.wordpress.com/)
 [and this source.](https://askubuntu.com/questions/949308/how-do-i-install-gfortran-7)
 
-
-<div id="text-cleaner-app">
-  <textarea id="inputText" rows="8"></textarea>
-  <textarea id="outputText" rows="8" readonly></textarea>
-</div>
-
-<script src="docs/assets/js/text-cleaner.js"></script>
+{% include text-cleaner.html %}
