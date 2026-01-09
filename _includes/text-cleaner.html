@@ -2,13 +2,11 @@
 document.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("inputText");
   const output = document.getElementById("outputText");
-
   if (!input || !output) return;
-
   input.addEventListener("input", function () {
     let text = input.value;
     text = text.replace(/\s{2,}/g, " ");
-    text = text.replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g,
+    text = text.replace(/(^\s*[a-z])|([.!?\n]\s*[a-z])/g,
       function (m) { return m.toUpperCase(); }
     );
     output.value = text;
