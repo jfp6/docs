@@ -24,7 +24,7 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 <div id="text-cleaner-app">
   <textarea id="inputText" rows="8" style="width:100%;"></textarea>
   <br><br>
-  <button onclick="cleanText()">Clean Text</button>
+  <button type="button" onclick="cleanText()">Clean Text</button>
   <br><br>
   <textarea id="outputText" rows="8" style="width:100%;"></textarea>
 </div>
@@ -33,10 +33,10 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 function cleanText() {
   let text = document.getElementById("inputText").value;
 
-  // Remove all sequential spaces (2 or more → 1)
+  // Collapse multiple spaces into one
   text = text.replace(/\s{2,}/g, " ");
 
-  // Capitalize the first letter of each sentence
+  // Capitalize first letter of each sentence
   text = text.replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, match =>
     match.toUpperCase()
   );
@@ -44,3 +44,4 @@ function cleanText() {
   document.getElementById("outputText").value = text;
 }
 </script>
+
