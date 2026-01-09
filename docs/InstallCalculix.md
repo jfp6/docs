@@ -26,4 +26,4 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
   <textarea id="outputText" rows="8" readonly></textarea>
 </div>
 
-<script src="/assets/js/text-cleaner.js"></script>
+<script src="docs/assets/js/text-cleaner.js"></script>
