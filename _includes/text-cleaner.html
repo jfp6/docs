@@ -1,17 +1,49 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const input = document.getElementById("inputText");
-  const output = document.getElementById("outputText");
+  const app = document.getElementById("text-cleaner-app");
+  if (!app) return;
 
-  if (!input || !output) return;
+  const input = app.querySelector("#inputText");
+  const output = app.querySelector("#outputText");
+  const copyBtn = app.querySelector("#copyOutputButton");
+  const status = app.querySelector("#copyStatus");
 
+  if (!input || !output || !copyBtn) return;
+
+  // Live cleaning
   input.addEventListener("input", function () {
     let text = input.value;
+
+    // Remove multiple spaces
     text = text.replace(/\s{2,}/g, " ");
-    text = text.replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g,
+
+    // Capitalize first letter of each sentence
+    text = text.replace(
+      /(^\s*[a-z])|([.!?]\s+[a-z])/g,
       function (m) { return m.toUpperCase(); }
     );
+
     output.value = text;
+  });
+
+  // Copy button
+  copyBtn.addEventListener("click", function () {
+    output.select();
+    output.setSelectionRange(0, output.value.length); // mobile support
+
+    try {
+      document.execCommand("copy");
+      if (status) {
+        status.textContent = "Copied!";
+        setTimeout(() => status.textContent = "", 1500);
+      }
+    } catch (err) {
+      if (status) {
+        status.textContent = "Copy failed";
+      }
+    }
+
+    window.getSelection().removeAllRanges();
   });
 });
 </script>
