@@ -21,30 +21,8 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 [and this source.](https://askubuntu.com/questions/949308/how-do-i-install-gfortran-7)
 
 <div id="text-cleaner-app">
-  <textarea
-    id="inputText"
-    rows="20"
-    style="width:100%;"
-    placeholder="Type or paste text here..."
-  ></textarea>
-
-  <br><br>
-
-  <textarea
-    id="outputText"
-    rows="20"
-    style="width:100%;"
-    placeholder="Cleaned text appears here..."
-    readonly
-  ></textarea>
-
-  <br><br>
-
-  <button type="button" id="copyOutputButton">
-    Copy cleaned text
-  </button>
-
-  <span id="copyStatus" style="margin-left:10px;"></span>
+  <textarea id="inputText" rows="20" style="width:100%;"></textarea>
+  <textarea id="outputText" rows="20" style="width:100%;" readonly></textarea>
 </div>
 
 {% include text-cleaner.html %}
