@@ -20,42 +20,10 @@ echo "alias ccx221='~/CalculiX/ccx_2.21/src/ccx_2.21'" >> ~/.bashrc
 [Modified from this source.](https://carlomonjaraztec.wordpress.com/)
 [and this source.](https://askubuntu.com/questions/949308/how-do-i-install-gfortran-7)
 
-{% raw %}
 
 <div id="text-cleaner-app">
-  <textarea
-    id="inputText"
-    rows="8"
-    style="width:100%;"
-    oninput="cleanText()"
-    placeholder="Type or paste text here..."
-  ></textarea>
-
-  <br><br>
-
-  <textarea
-    id="outputText"
-    rows="8"
-    style="width:100%;"
-    placeholder="Cleaned text appears here..."
-    readonly
-  ></textarea>
+  <textarea id="inputText" rows="8"></textarea>
+  <textarea id="outputText" rows="8" readonly></textarea>
 </div>
 
-<script>
-function cleanText() {
-  let text = document.getElementById("inputText").value;
-
-  // Collapse multiple spaces into one
-  text = text.replace(/\s{2,}/g, " ");
-
-  // Capitalize first letter of each sentence
-  text = text.replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, match =>
-    match.toUpperCase()
-  );
-
-  document.getElementById("outputText").value = text;
-}
-</script>
-
-{% endraw %}
+<script src="/assets/js/text-cleaner.js"></script>
