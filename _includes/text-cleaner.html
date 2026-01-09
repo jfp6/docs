@@ -17,6 +17,7 @@
   ></textarea>
 </div>
 
+{% raw %}
 <script>
 (function () {
   console.log("Text cleaner include loaded");
@@ -39,7 +40,7 @@
       // Capitalize first letter of each sentence
       text = text.replace(
         /(^\s*[a-z])|([.!?]\s+[a-z])/g,
-        m => m.toUpperCase()
+        function (m) { return m.toUpperCase(); }
       );
 
       output.value = text;
@@ -55,3 +56,4 @@
   }
 })();
 </script>
+{% endraw %}
